@@ -22,10 +22,12 @@ public class ToDoDatabaseTest {
 
     @Before
     public void setUp() throws Exception {
+        System.out.println("setUp()");
         if(todoDatabase == null) {
-        todoDatabase = new ToDoDatabase();
-        todoDatabase.init();
-    }
+            System.out.println("Creating a new instance of the ToDoDatabase");
+            todoDatabase = new ToDoDatabase();
+            todoDatabase.init();
+        }
     }
 
 
@@ -43,12 +45,18 @@ public class ToDoDatabaseTest {
 
     }
 
+
     @Test
     public void testInsertToDo() throws Exception {
         Connection conn = DriverManager.getConnection("jdbc:h2:./main");
         String todoText = "UnitTest-ToDo";
 
-        todoDatabase.insertToDo(conn, todoText);
+        // adding a call to insertUser, so we have a user to add todos for
+        String username = "unittester@tiy.com";
+        String fullName = "Unit Tester";
+        int userID = todoDatabase.insertUser(conn, username, fullName);
+
+        todoDatabase.insertToDo(conn, todoText, userID);
 
         // make sure we can retrieve the todo we just created
         PreparedStatement stmt = conn.prepareStatement("SELECT * FROM todos where text = ?");
@@ -64,6 +72,8 @@ public class ToDoDatabaseTest {
         assertEquals(1, numResults);
 
         todoDatabase.deleteToDo(conn, todoText);
+        // make sure we remove the test user we added earlier
+        todoDatabase.deleteUser(conn, username);
 
         // make sure there are no more records for our test todo
         results = stmt.executeQuery();
@@ -73,6 +83,7 @@ public class ToDoDatabaseTest {
         }
         assertEquals(0, numResults);
     }
+
     @Test
     public void testSelectAllToDos() throws Exception {
         Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
@@ -82,8 +93,14 @@ public class ToDoDatabaseTest {
         ArrayList<ToDoItem> todos = todoDatabase.selectToDos(conn);
         int todosBefore = todos.size();
 
-        todoDatabase.insertToDo(conn, firstToDoText);
-        todoDatabase.insertToDo(conn, secondToDoText);
+        //adding a call to insertUser
+        String username = "unittester@tiy.com";
+        String fullName = "Unit Tester";
+        int userID = todoDatabase.insertUser(conn, username, fullName);
+
+
+        todoDatabase.insertToDo(conn, firstToDoText,userID);
+        todoDatabase.insertToDo(conn, secondToDoText,userID);
 
         todos = todoDatabase.selectToDos(conn);
         System.out.println("Found " + todos.size() + " todos in the database");
@@ -93,6 +110,36 @@ public class ToDoDatabaseTest {
 
         todoDatabase.deleteToDo(conn, firstToDoText);
         todoDatabase.deleteToDo(conn, secondToDoText);
+        todoDatabase.deleteUser(conn,username);
+    }
+
+    @Test
+    public void testInsertUser() throws Exception{
+        Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
+        System.out.println("Connection = " + conn);
+        String username = "someone@tester.com";
+        String fullname = "someone's full name";
+
+        int userID = todoDatabase.insertUser(conn, username,fullname);
+        System.out.println("Created user with ID = " + userID);
+
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users where username = ?");
+        stmt.setString(1, username);
+//        stmt.setString(2,fullname);
+
+        ResultSet results = stmt.executeQuery();
+        assertNotNull(results);
+
+
+        int numResults = 0;
+        while (results.next()) {
+            numResults++;
+        }
+
+        assertEquals(1, numResults);
+
+//        todoDatabase.deleteUser(conn, username);
+
     }
 
 
