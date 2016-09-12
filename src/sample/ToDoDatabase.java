@@ -4,12 +4,15 @@ import org.h2.tools.Server;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Created by Yehia830 on 9/8/16.
  */
 public class ToDoDatabase {
     public final static String DB_URL = "jdbc:h2:./main";
+    String userName;
+
 
     public void init() throws SQLException {
 
@@ -41,10 +44,10 @@ public class ToDoDatabase {
         System.out.println("insertToDo() with text: " + text +
                             " and userID = " + userID);
 
-        PreparedStatement stmt = conn.prepareStatement("INSERT INTO todos VALUES (NULL, 'testing by hand', false, 1)");
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO todos VALUES (NULL, ?, false, ?)");
 
-//        stmt.setString(1, text);
-//        stmt.setInt(2, userID);
+        stmt.setString(1, text);
+        stmt.setInt(2, userID);
         System.out.println(stmt.toString());
         stmt.execute();
     }
@@ -87,6 +90,40 @@ public class ToDoDatabase {
         Connection conn = DriverManager.getConnection(DB_URL);
         return conn = DriverManager.getConnection(DB_URL);
     }
+
+    public ArrayList<ToDoItem> selectToDosForUser(Connection conn, int userID) throws SQLException {
+        ArrayList<ToDoItem> items = new ArrayList<>();
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM todos " +
+                "INNER JOIN users ON todos.user_id = users.id " +
+                "WHERE users.id = ?");
+        stmt.setInt(1, userID);
+        ResultSet results = stmt.executeQuery();
+
+        while (results.next()) {
+            int id = results.getInt("id");
+            String text = results.getString("text");
+            boolean isDone = results.getBoolean("is_done");
+            items.add(new ToDoItem(id, text, isDone));
+        }
+        return items;
+    }
+    public void selectUser(String userName, Connection conn) throws SQLException{
+        User user = new User(userName);
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Which user are you looking for?");
+        String findObject = scanner.next();
+
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM todos WHERE todos.user_id = " + findObject);
+        ResultSet resultSet = stmt.executeQuery();
+
+        while(resultSet.next()) {
+            boolean isDone = resultSet.getBoolean("is_done");
+
+        }
+
+
+    }
+
 
 
 }

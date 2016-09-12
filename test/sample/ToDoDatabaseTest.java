@@ -138,9 +138,48 @@ public class ToDoDatabaseTest {
 
         assertEquals(1, numResults);
 
-//        todoDatabase.deleteUser(conn, username);
+      todoDatabase.deleteUser(conn, username);
 
     }
+    @Test
+    public void testInsertToDoForUser() throws Exception {
+        Connection conn = DriverManager.getConnection("jdbc:h2:./main");
+        String todoText = "UnitTest-ToDo";
+        String todoText2 = "UnitTest-ToDo2";
+
+        // adding a call to insertUser, so we have a user to add todos for
+        String username = "unittester@tiy.com";
+        String fullName = "Unit Tester";
+        int userID = todoDatabase.insertUser(conn, username, fullName);
+
+        String username2 = "unitester2@tiy.com";
+        String fullName2 = "Unit Tester 2";
+        int userID2 = todoDatabase.insertUser(conn, username2, fullName2);
+
+        todoDatabase.insertToDo(conn, todoText, userID);
+        todoDatabase.insertToDo(conn, todoText2, userID2);
+
+        // make sure each user only has one todo item
+        ArrayList<ToDoItem> todosUser1 = todoDatabase.selectToDosForUser(conn, userID);
+        ArrayList<ToDoItem> todosUser2 = todoDatabase.selectToDosForUser(conn, userID2);
+
+        assertEquals(1, todosUser1.size());
+        assertEquals(1, todosUser2.size());
+
+        // make sure each todo item matches
+        ToDoItem todoUser1 = todosUser1.get(0);
+        assertEquals(todoText, todoUser1.text);
+        ToDoItem todoUser2 = todosUser2.get(0);
+        assertEquals(todoText2, todoUser2.text);
+
+        todoDatabase.deleteToDo(conn, todoText);
+        todoDatabase.deleteToDo(conn, todoText2);
+        // make sure we remove the test user we added earlier
+        todoDatabase.deleteUser(conn, username);
+        todoDatabase.deleteUser(conn, username2);
+
+    }
+
 
 
 
