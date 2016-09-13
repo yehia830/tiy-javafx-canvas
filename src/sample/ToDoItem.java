@@ -7,12 +7,17 @@ public class ToDoItem {
     public String text;
     public boolean isDone;
 
-    public ToDoItem(String text) {
+    public ToDoItem(int id,String text, boolean isDone) {
         this.text = text;
         this.isDone = false;
+        this.isDone = isDone;
+
     }
 
     public ToDoItem() {
+
+    }
+    public ToDoItem(String text) {
     }
 
     @Override
