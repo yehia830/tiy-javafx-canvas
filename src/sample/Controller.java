@@ -34,6 +34,7 @@ public class Controller implements Initializable  {
     String fileName = "todos.json";
 
     public String username;
+    public String fullname;
     ToDoDatabase toDoDatabase = new ToDoDatabase();
     Connection conn;
     int id;
@@ -42,22 +43,25 @@ public class Controller implements Initializable  {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-        System.out.print("Please enter your name: ");
         Scanner inputScanner = new Scanner(System.in);
-        username = inputScanner.nextLine();
-
-        if (username != null && !username.isEmpty()) {
-            fileName = username + ".json";
-        }
-
-        System.out.println("Checking existing list ...");
-        ToDoItemList retrievedList = retrieveList();
-        if (retrievedList != null) {
-            for (ToDoItem item : retrievedList.todoItems) {
-                todoItems.add(item);
-            }
-        }
+//      try{
+//
+//
+//      }catch (SQLException ex){
+//
+//      }
+////
+//        if (username != null && !username.isEmpty()) {
+//            fileName = username + ".json";
+//        }
+//
+//        System.out.println("Checking existing list ...");
+//        ToDoItemList retrievedList = retrieveList();
+//        if (retrievedList != null) {
+//            for (ToDoItem item : retrievedList.todoItems) {
+//                todoItems.add(item);
+//            }
+//        }
 
         todoList.setItems(todoItems);
     }
@@ -147,5 +151,8 @@ public class Controller implements Initializable  {
 //            // from the file, just return null, so the caller knows to create an object from scratch
             return null;
 //        }
+    }
+    public User createNewUser(Scanner scanner){
+        System.out.println("Hello new user! PLease enter your email!");
     }
 }

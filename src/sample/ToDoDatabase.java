@@ -40,7 +40,7 @@ public class ToDoDatabase {
         return results.getInt("id");
     }
 
-    public void insertToDo(Connection conn, String text, int userID) throws SQLException {
+    public int insertToDo(Connection conn, String text, int userID) throws SQLException {
         System.out.println("insertToDo() with text: " + text +
                             " and userID = " + userID);
 
@@ -50,6 +50,14 @@ public class ToDoDatabase {
         stmt.setInt(2, userID);
         System.out.println(stmt.toString());
         stmt.execute();
+
+        PreparedStatement stmt2 = conn.prepareStatement("SELECT * FROM todos WHERE text = ? AND user_id = ?");
+        stmt2.setString(1, text);
+        stmt2.setInt(2, userID);
+        ResultSet results = stmt2.executeQuery();
+        results.next();
+        int id = results.getInt("id");
+        return id;
     }
 
 
@@ -108,7 +116,7 @@ public class ToDoDatabase {
         return items;
     }
     public void selectUser(String userName, Connection conn) throws SQLException{
-        User user = new User(userName);
+        User user = new User();
         Scanner scanner = new Scanner(System.in);
         System.out.println("Which user are you looking for?");
         String findObject = scanner.next();
