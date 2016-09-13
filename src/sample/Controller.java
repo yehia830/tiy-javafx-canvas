@@ -75,7 +75,7 @@ public class Controller implements Initializable  {
 
     public void addItem () throws SQLException {
         System.out.println("Adding item ...");
-//        toDoDatabase.insertToDo(toDoDatabase.getConnection(),(todoText.getText()),(toDoDatabase.insertUser(conn,username,username)));
+          toDoDatabase.insertToDo(toDoDatabase.getConnection(),(todoText.getText()),(toDoDatabase.insertUser(conn,username,username)));
         todoItems.add(new ToDoItem(todoText.getText()));
         todoText.setText("");
 
