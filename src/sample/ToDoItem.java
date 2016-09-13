@@ -18,6 +18,8 @@ public class ToDoItem {
     }
 
     public ToDoItem(String text) {
+        this.text = text;
+        this.isDone = false;
     }
 
 
