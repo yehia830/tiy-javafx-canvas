@@ -10,24 +10,26 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-
+/**
+ * Created by Yehia830 on 9/8/16.
+ */
 public class ToDoDatabaseTest {
+    static ToDoDatabase todoDatabase = null;
 
-    ToDoDatabase todoDatabase = null;
+
 
     @Before
     public void setUp() throws Exception {
-//        System.out.println("setUp() is running!");
-        if (todoDatabase == null) {
-//            System.out.println("Initializing the database this time around (should only see this once!)");
+        System.out.println("setUp()");
+        if(todoDatabase == null) {
+            System.out.println("Creating a new instance of the ToDoDatabase");
             todoDatabase = new ToDoDatabase();
             todoDatabase.init();
         }
     }
+
 
     @After
     public void tearDown() throws Exception {
@@ -40,95 +42,13 @@ public class ToDoDatabaseTest {
         PreparedStatement todoQuery = conn.prepareStatement("SELECT * FROM todos");
         ResultSet results = todoQuery.executeQuery();
         assertNotNull(results);
+
     }
 
-    @Test
-    public void testInsertUser() throws Exception {
-        Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
-        String userName = "UnitTest-UserInsertUserName";
-        String fullName = "UnitTest-UserInsertFullName";
-
-
-        todoDatabase.insertUser(conn, userName, fullName);
-
-        // make sure we can retrieve the user we just created
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ?");
-        stmt.setString(1, userName);
-
-        ResultSet results = stmt.executeQuery();
-        assertNotNull(results);
-
-        // count the records in results to make sure we get what we expected
-        int numResults = 0;
-        while (results.next()) {
-            numResults++;
-        }
-
-        assertEquals(5, numResults);
-
-        todoDatabase.deleteUser(conn, userName);
-
-        // make sure there are no more records for our test user
-        results = stmt.executeQuery();
-        numResults = 0;
-        while (results.next()) {
-            numResults++;
-        }
-        assertEquals(0, numResults);
-    }
-
-//    @Test
-//    public void testInsertToDo() throws Exception {
-//        Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
-//        String todoText = "UnitTest-ToDo";
-//        todoDatabase.insertToDo(conn, todoText);
-//        // make sure we can retrieve the todo we just created
-//        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM todos where text = ?");
-//        stmt.setString(1, todoText);
-//        ResultSet results = stmt.executeQuery();
-//        assertNotNull(results);
-//        // count the records in results to make sure we get what we expected
-//        int numResults = 0;
-//        while (results.next()) {
-//            numResults++;
-//        }
-//        assertEquals(1, numResults);
-//    }
-
-//    @Test
-//    public void testInsertToDo() throws Exception {
-//        Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
-//        String todoText = "UnitTest-ToDo";
-//
-//        todoDatabase.insertToDo(conn, todoText);
-//
-//        // make sure we can retrieve the todo we just created
-//        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM todos WHERE text = ?");
-//        stmt.setString(1, todoText);
-//        ResultSet results = stmt.executeQuery();
-//        assertNotNull(results);
-//        // count the records in results to make sure we get what we expected
-//        int numResults = 0;
-//        while (results.next()) {
-//            numResults++;
-//        }
-//
-//        assertEquals(1, numResults);
-//
-//        todoDatabase.deleteToDo(conn, todoText);
-//
-//        // make sure there are no more records for our test todo
-//        results = stmt.executeQuery();
-//        numResults = 0;
-//        while (results.next()) {
-//            numResults++;
-//        }
-//        assertEquals(0, numResults);
-//    }
 
     @Test
     public void testInsertToDo() throws Exception {
-        Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
+        Connection conn = DriverManager.getConnection("jdbc:h2:./main");
         String todoText = "UnitTest-ToDo";
 
         // adding a call to insertUser, so we have a user to add todos for
@@ -164,37 +84,66 @@ public class ToDoDatabaseTest {
         assertEquals(0, numResults);
     }
 
-
     @Test
     public void testSelectAllToDos() throws Exception {
         Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
         String firstToDoText = "UnitTest-ToDo1";
         String secondToDoText = "UnitTest-ToDo2";
-//        String secondToDoText2 = "UnitTest-ToDo2.1";
 
         ArrayList<ToDoItem> todos = todoDatabase.selectToDos(conn);
-//        int todosBefore = todos.size();
+        int todosBefore = todos.size();
 
-        // adding a call to insertUser, so we have a user to add todos for
+        //adding a call to insertUser
         String username = "unittester@tiy.com";
         String fullName = "Unit Tester";
-        int userId = todoDatabase.insertUser(conn, username, fullName);
+        int userID = todoDatabase.insertUser(conn, username, fullName);
 
-        todoDatabase.insertToDo(conn, firstToDoText, userId);
-        todoDatabase.insertToDo(conn, secondToDoText, userId);
 
+        todoDatabase.insertToDo(conn, firstToDoText,userID);
+        todoDatabase.insertToDo(conn, secondToDoText,userID);
+
+        todos = todoDatabase.selectToDos(conn);
         System.out.println("Found " + todos.size() + " todos in the database");
 
-        assertTrue("There should be at least 2 todos in the database (there are " + todos.size() + ")", todos.size() > 1);
-//                todos.size() + ")", todos.size() >= todosBefore + 2);
+        assertTrue("There should be at least 2 todos in the database (there are " +
+                todos.size() + ")", todos.size() >= todosBefore + 2);
 
         todoDatabase.deleteToDo(conn, firstToDoText);
         todoDatabase.deleteToDo(conn, secondToDoText);
+        todoDatabase.deleteUser(conn,username);
     }
 
     @Test
-    public void testInsertToDoForUser() throws Exception {
+    public void testInsertUser() throws Exception{
         Connection conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
+        System.out.println("Connection = " + conn);
+        String username = "someone@tester.com";
+        String fullname = "someone's full name";
+
+        int userID = todoDatabase.insertUser(conn, username,fullname);
+        System.out.println("Created user with ID = " + userID);
+
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users where username = ?");
+        stmt.setString(1, username);
+//        stmt.setString(2,fullname);
+
+        ResultSet results = stmt.executeQuery();
+        assertNotNull(results);
+
+
+        int numResults = 0;
+        while (results.next()) {
+            numResults++;
+        }
+
+        assertEquals(1, numResults);
+
+        todoDatabase.deleteUser(conn, username);
+
+    }
+    @Test
+    public void testInsertToDoForUser() throws Exception {
+        Connection conn = DriverManager.getConnection("jdbc:h2:./main");
         String todoText = "UnitTest-ToDo";
         String todoText2 = "UnitTest-ToDo2";
 
@@ -215,7 +164,7 @@ public class ToDoDatabaseTest {
         ArrayList<ToDoItem> todosUser2 = todoDatabase.selectToDosForUser(conn, userID2);
 
         assertEquals(1, todosUser1.size());
-        assertEquals(0, todosUser2.size());
+        assertEquals(1, todosUser2.size());
 
         // make sure each todo item matches
         ToDoItem todoUser1 = todosUser1.get(0);
@@ -230,4 +179,16 @@ public class ToDoDatabaseTest {
         todoDatabase.deleteUser(conn, username2);
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
 }
