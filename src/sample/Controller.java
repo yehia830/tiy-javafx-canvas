@@ -38,9 +38,9 @@ public class Controller implements Initializable {
         Scanner inputScanner = new Scanner(System.in);
         username = inputScanner.nextLine();
 
-        if (username != null && !username.isEmpty()) {
-            fileName = username + ".json";
-        }
+//        if (username != null && !username.isEmpty()) {
+//            fileName = username + ".json";
+//        }
 
         System.out.println("Checking existing list ...");
         ToDoItemList retrievedList = retrieveList();
@@ -48,10 +48,13 @@ public class Controller implements Initializable {
             for (ToDoItem item : retrievedList.todoItems) {
                 todoItems.add(item);
             }
-        }
 
-        todoList.setItems(todoItems);
+        }
     }
+
+
+
+
 
     public void saveToDoList() {
         if (todoItems != null && todoItems.size() > 0) {
