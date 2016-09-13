@@ -2,7 +2,6 @@ package sample;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
@@ -16,13 +15,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
-public class Controller implements Initializable  {
+public class Controller implements Initializable {
     @FXML
     ListView todoList;
 
@@ -32,13 +29,12 @@ public class Controller implements Initializable  {
     ObservableList<ToDoItem> todoItems = FXCollections.observableArrayList();
     ArrayList<ToDoItem> savableList = new ArrayList<ToDoItem>();
     String fileName = "todos.json";
+    ToDoDatabase toDoDatabase;
+    Connection conn;
+
 
     public String username;
-    ToDoDatabase toDoDatabase = new ToDoDatabase();
-    Connection conn;
-    public int id;
-
-
+    public int userId;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -46,23 +42,17 @@ public class Controller implements Initializable  {
 //        System.out.print("Please enter your name: ");
 //        Scanner inputScanner = new Scanner(System.in);
 //        username = inputScanner.nextLine();
-//
+
 //        if (username != null && !username.isEmpty()) {
 //            fileName = username + ".json";
 //        }
-//
-//        System.out.println("Checking existing list ...");
+
+        System.out.println("Checking existing list ...");
 //        ToDoItemList retrievedList = retrieveList();
-//        if (retrievedList != null) {
-//            for (ToDoItem item : retrievedList.todoItems) {
-//                todoItems.add(item);
-//            }
-//        }
-//
-        todoList.setItems(todoItems);
+        toDoDatabase = new ToDoDatabase();
 
-        try{
-
+        try {
+            toDoDatabase.init();
             conn = DriverManager.getConnection(toDoDatabase.DB_URL);
             savableList = toDoDatabase.selectToDos(conn);
 
@@ -74,57 +64,64 @@ public class Controller implements Initializable  {
             exception.printStackTrace();
         }
 
-        }
 
-
-
-
-    public void saveToDoList() {
-//        if (todoItems != null && todoItems.size() > 0) {
-//            System.out.println("Saving " + todoItems.size() + " items in the list");
-//            savableList = new ArrayList<ToDoItem>(todoItems);
-//            System.out.println("There are " + savableList.size() + " items in my savable list");
-//            saveList();
-//        } else {
-//            System.out.println("No items in the ToDo List");
+//        if (retrievedList != null) {
+//            for (ToDoItem item : retrievedList.todoItems) {
+//                todoItems.add(item);
+//            }
 //        }
+
+        todoList.setItems(todoItems);
     }
 
-    public void addItem () throws SQLException {
-        System.out.println("Adding item ...");
-        toDoDatabase.insertToDo(toDoDatabase.getConnection(),todoText.getText(),id);
-        todoItems.add(new ToDoItem(todoText.getText()));
-        todoText.setText("");
+    public void saveToDoList() {
+        if (todoItems != null && todoItems.size() > 0) {
+            System.out.println("Saving " + todoItems.size() + " items in the list");
+            savableList = new ArrayList<ToDoItem>(todoItems);
+            System.out.println("There are " + savableList.size() + " items in my savable list");
+            saveList();
+        } else {
+            System.out.println("No items in the ToDo List");
+        }
+    }
 
+    public void addItem() {
+        try {
+            System.out.println("Adding item ...");
+            toDoDatabase.insertToDo(conn, todoText.getText(), userId);
+            todoItems.add(new ToDoItem(todoText.getText()));
 
-
-
+            todoText.setText("");
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     public void removeItem() {
-        ToDoItem todoItem = (ToDoItem)todoList.getSelectionModel().getSelectedItem();
-        System.out.println("Removing " + todoItem.text + " ...");
-        todoItems.remove(todoItem);
+        try {
+            ToDoItem todoItem = (ToDoItem) todoList.getSelectionModel().getSelectedItem();
+            System.out.println("Removing " + todoItem.text + " ...");
+            todoItems.remove(todoItem);
+            toDoDatabase.deleteToDo(conn, todoItem.text);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     public void toggleItem() {
-        System.out.println("Toggling item ...");
-        try{
-            conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
-
-
-            toDoDatabase.toggleToDo(conn,id);
-        }catch(Exception e){
-
+        try {
+            System.out.println("Toggling item ...");
+            ToDoItem todoItem = (ToDoItem)todoList.getSelectionModel().getSelectedItem();
+            if (todoItem != null) {
+                todoItem.isDone = !todoItem.isDone;
+                todoList.setItems(null);
+                todoList.setItems(todoItems);
+                toDoDatabase.toggleToDo(conn, todoItem.id);
+            }
+        } catch (Exception exception){
+            exception.printStackTrace();
         }
 
-
-        ToDoItem todoItem = (ToDoItem)todoList.getSelectionModel().getSelectedItem();
-        if (todoItem != null) {
-            todoItem.isDone = !todoItem.isDone;
-            todoList.setItems(null);
-            todoList.setItems(todoItems);
-        }
     }
 
     public void saveList() {
@@ -147,22 +144,23 @@ public class Controller implements Initializable  {
     }
 
     public ToDoItemList retrieveList() {
-//        try {
+        try {
 
-//            Scanner fileScanner = new Scanner(new File(fileName));
-//            fileScanner.useDelimiter("\\Z"); // read the input until the "end of the input" delimiter
-//            String fileContents = fileScanner.next();
-//            JsonParser ToDoItemParser = new JsonParser();
-//
-//            ToDoItemList theListContainer = ToDoItemParser.parse(fileContents, ToDoItemList.class);
-//            System.out.println("==============================================");
-//            System.out.println("        Restored previous ToDoItem");
-//            System.out.println("==============================================");
-//            return theListContainer;
-//        } catch (IOException ioException) {
-//            // if we can't find the file or run into an issue restoring the object
-//            // from the file, just return null, so the caller knows to create an object from scratch
-        return null;
-//        }
+            Scanner fileScanner = new Scanner(new File(fileName));
+            fileScanner.useDelimiter("\\Z"); // read the input until the "end of the input" delimiter
+            String fileContents = fileScanner.next();
+            JsonParser ToDoItemParser = new JsonParser();
+
+            ToDoItemList theListContainer = ToDoItemParser.parse(fileContents, ToDoItemList.class);
+            System.out.println("==============================================");
+            System.out.println("        Restored previous ToDoItem");
+            System.out.println("==============================================");
+            return theListContainer;
+        } catch (IOException ioException) {
+            // if we can't find the file or run into an issue restoring the object
+            // from the file, just return null, so the caller knows to create an object from scratch
+            return null;
+        }
     }
+
 }

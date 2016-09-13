@@ -6,19 +6,21 @@ package sample;
 public class ToDoItem {
     public String text;
     public boolean isDone;
+    public int id;
 
-    public ToDoItem(int id,String text, boolean isDone) {
+    public ToDoItem(int id, String text, boolean isDone) {
+        this.id = id;
         this.text = text;
-        this.isDone = false;
         this.isDone = isDone;
-
     }
 
     public ToDoItem() {
-
     }
+
     public ToDoItem(String text) {
     }
+
+
 
     @Override
     public String toString() {
@@ -27,7 +29,8 @@ public class ToDoItem {
         } else {
             return text;
         }
-        // A one-line version of the logic above:
-        // return text + (isDone ? " (done)" : "");
+
     }
+
+
 }
