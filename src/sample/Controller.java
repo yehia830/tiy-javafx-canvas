@@ -29,7 +29,7 @@ public class Controller implements Initializable {
     ObservableList<ToDoItem> todoItems = FXCollections.observableArrayList();
     ArrayList<ToDoItem> savableList = new ArrayList<ToDoItem>();
     String fileName = "todos.json";
-    ToDoDatabase toDoDatabase;
+    ToDoDatabase database;
     Connection conn;
 
 
@@ -49,12 +49,12 @@ public class Controller implements Initializable {
 
         System.out.println("Checking existing list ...");
 //        ToDoItemList retrievedList = retrieveList();
-        toDoDatabase = new ToDoDatabase();
+        database = new ToDoDatabase();
 
         try {
-            toDoDatabase.init();
-            conn = DriverManager.getConnection(toDoDatabase.DB_URL);
-            savableList = toDoDatabase.selectToDos(conn);
+            database.init();
+            conn = DriverManager.getConnection(database.DB_URL);
+            savableList = database.selectToDos(conn);
 
             for (ToDoItem item : savableList) {
                 todoItems.add(item);
@@ -88,7 +88,7 @@ public class Controller implements Initializable {
     public void addItem() {
         try {
             System.out.println("Adding item ...");
-            toDoDatabase.insertToDo(conn, todoText.getText(), userId);
+            database.insertToDo(conn, todoText.getText(), userId);
             todoItems.add(new ToDoItem(todoText.getText()));
 
             todoText.setText("");
@@ -102,7 +102,7 @@ public class Controller implements Initializable {
             ToDoItem todoItem = (ToDoItem) todoList.getSelectionModel().getSelectedItem();
             System.out.println("Removing " + todoItem.text + " ...");
             todoItems.remove(todoItem);
-            toDoDatabase.deleteToDo(conn, todoItem.text);
+            database.deleteToDo(conn, todoItem.text);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -116,7 +116,7 @@ public class Controller implements Initializable {
                 todoItem.isDone = !todoItem.isDone;
                 todoList.setItems(null);
                 todoList.setItems(todoItems);
-                toDoDatabase.toggleToDo(conn, todoItem.id);
+                database.toggleToDo(conn, todoItem.id);
             }
         } catch (Exception exception){
             exception.printStackTrace();
