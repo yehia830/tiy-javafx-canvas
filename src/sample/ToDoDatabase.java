@@ -33,7 +33,7 @@ public class ToDoDatabase {
         stmt.setString(2, fullname);
         stmt.execute();
 
-        stmt = conn.prepareStatement("SELECT * FROM users where username = ?");
+        stmt = conn.prepareStatement("SELECT * FROM users WHERE username = ?");
         stmt.setString(1, username);
         ResultSet results = stmt.executeQuery();
         results.next();
@@ -115,22 +115,74 @@ public class ToDoDatabase {
         }
         return items;
     }
-    public void selectUser(String userName, Connection conn) throws SQLException{
-        User user = new User();
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Which user are you looking for?");
-        String findObject = scanner.next();
-
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM todos WHERE todos.user_id = " + findObject);
-        ResultSet resultSet = stmt.executeQuery();
-
-        while(resultSet.next()) {
-            boolean isDone = resultSet.getBoolean("is_done");
-
+    public User selectUser(String userName, Connection conn) throws SQLException{
+        PreparedStatement stmt = conn.prepareStatement("SELECT *  FROM users WHERE username = ?");
+        stmt.setString(1, userName);
+        ResultSet results = stmt.executeQuery();
+        if (results == null) {
+            System.out.println("IN SELECT USER METHOD: User does not exist!");
+            return null;
+        } else {
+            results.next();
+            String usernameFromDB = results.getString("username");
+            String fullnameFromDB = results.getString("fullname");
+            int idFromDB = results.getInt("id");
+            User myUserFromDB = new User(usernameFromDB, fullnameFromDB, idFromDB);
+            return myUserFromDB;
         }
 
 
+
     }
+    public int getNumberOfUsers(Connection conn) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users");
+        ResultSet results = stmt.executeQuery();
+        int numUsers = 0;
+        while (results.next()) {
+            numUsers++;
+        }
+        return numUsers;
+//        return -1;
+    }
+
+
+    public ArrayList<User> getAllUsers(Connection conn) throws SQLException {
+        ArrayList<User> allUsers = new ArrayList<User>();
+
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users");
+        ResultSet results = stmt.executeQuery();
+        String username;
+        String fullName;
+        int id;
+        User userToAdd;
+        while (results.next()) {
+            username = results.getString("username");
+            fullName = results.getString("fullname");
+            id = results.getInt("id");
+            userToAdd = new User(username, fullName, id);
+
+            allUsers.add(userToAdd);
+        }
+        return allUsers;
+    }
+
+    public String getUserNameByID(Connection conn, int id) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE id = ?");
+        stmt.setInt(1, id);
+        ResultSet results = stmt.executeQuery();
+        if (results != null) {
+            results.next();
+            String username = results.getString("username");
+
+            return username;
+        } else {
+            return null;
+        }
+    }
+
+
+
+
 
 
 

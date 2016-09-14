@@ -38,18 +38,74 @@ public class Controller implements Initializable  {
     ToDoDatabase toDoDatabase = new ToDoDatabase();
     Connection conn;
     int id;
+    User currentUser;
 
 
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         Scanner inputScanner = new Scanner(System.in);
-//      try{
-//
-//
-//      }catch (SQLException ex){
-//
-//      }
+      try{
+
+          conn = DriverManager.getConnection(ToDoDatabase.DB_URL);
+
+          toDoDatabase.init();
+
+          boolean keepGoing = true;
+
+          if(toDoDatabase.getNumberOfUsers(conn) == 0){
+              currentUser = createNewUser(inputScanner);
+
+          }else{
+              while(keepGoing){
+                  System.out.println("Please enter your userID, or enter \"0\" to create a new user.");
+                  System.out.println("USER ID\t\tUSERNAME\t\t\t\tFULL NAME");
+                  ArrayList<Integer> userIdHolder = new ArrayList<Integer>();
+                  for (User user : toDoDatabase.getAllUsers(conn)) {
+                      userIdHolder.add(user.id);
+                      System.out.println("   " + user.id + "\t\t" + user.userName + "\t\t\t" + user.fullname);
+                  }
+                  System.out.println("   0" + "New User");
+                  int userSelection = inputScanner.nextInt();
+                  inputScanner.nextLine();
+
+                 if (userSelection == 0){
+                     currentUser = createNewUser(inputScanner);
+                     keepGoing = false;
+                 }else{
+                     boolean userIsPresent = false;
+                     for(int id : userIdHolder){
+                         userIsPresent = true;
+                     }
+
+                     if(userIsPresent){
+                         username = toDoDatabase.getUserNameByID(conn, userSelection);
+                         currentUser = toDoDatabase.selectUser(username, conn);
+                         keepGoing = false;
+                     }else{
+                         System.out.println("That user is not in the system!");
+                     }
+
+                 }
+
+
+
+
+              }
+          }
+
+          ArrayList<ToDoItem> toDoItemsFromDB = toDoDatabase.selectToDosForUser(conn, currentUser.id);
+          for (ToDoItem item : toDoItemsFromDB) {
+//                System.out.println(item.toString());
+              todoItems.add(item);
+          }
+
+          todoList.setItems(todoItems);
+
+
+      }catch (SQLException ex){
+
+      }
 ////
 //        if (username != null && !username.isEmpty()) {
 //            fileName = username + ".json";
@@ -63,7 +119,7 @@ public class Controller implements Initializable  {
 //            }
 //        }
 
-        todoList.setItems(todoItems);
+
     }
 
     public void saveToDoList() {
@@ -77,14 +133,23 @@ public class Controller implements Initializable  {
 //        }
     }
 
-    public void addItem () throws SQLException {
-        System.out.println("Adding item ...");
-          toDoDatabase.insertToDo(toDoDatabase.getConnection(),(todoText.getText()),(toDoDatabase.insertUser(conn,username,username)));
-        todoItems.add(new ToDoItem(todoText.getText()));
-        todoText.setText("");
+    public void addItem() {
+        try {
+            System.out.println("Adding item ...");
+//            todoItems.add(new ToDoItem(todoText.getText()));
 
+            int id = toDoDatabase.insertToDo(conn, todoText.getText(), currentUser.id);
 
+            ToDoItem newToDoItem = new ToDoItem(id, todoText.getText());
+            todoItems.add(newToDoItem);
 
+            todoText.setText("");
+
+//            todoList.setItems(todoItems);
+        } catch (SQLException ex) {
+            System.out.println("Exception caught inserting toDo");
+            ex.printStackTrace();
+        }
 
     }
 
@@ -152,7 +217,16 @@ public class Controller implements Initializable  {
             return null;
 //        }
     }
-    public User createNewUser(Scanner scanner){
-        System.out.println("Hello new user! PLease enter your email!");
+    public User createNewUser(Scanner scanner) throws SQLException {
+        System.out.println("Hello new user! PLease enter your email!");System.out.print("New user! What is your email? ");
+        String username = scanner.nextLine();
+        System.out.print("What is your full name? ");
+        String fullname = scanner.nextLine();
+
+
+        int userId = toDoDatabase.insertUser(conn, username, fullname);
+
+        currentUser = new User(username, fullname, userId);
+        return currentUser;
     }
 }

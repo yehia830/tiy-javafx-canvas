@@ -32,4 +32,12 @@ public class ToDoItem {
         // A one-line version of the logic above:
         // return text + (isDone ? " (done)" : "");
     }
+    public ToDoItem(int id, String text) {
+        this.id = id;
+        this.text = text;
+        this.isDone = false;
+    }
+
+
+
 }

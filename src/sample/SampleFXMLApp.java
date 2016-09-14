@@ -29,7 +29,7 @@ public class SampleFXMLApp extends Application {
 
         ToDoDatabase toDoDatabase = new ToDoDatabase();
 
-        toDoDatabase.init();
+
 
         Connection conn = DriverManager.getConnection("jdbc:h2:./main");
 
