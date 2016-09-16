@@ -105,6 +105,7 @@ public class ToDoDatabase {
                 "INNER JOIN users ON todos.user_id = users.id " +
                 "WHERE users.id = ?");
         stmt.setInt(1, userID);
+        System.out.println("the id im trying to get is " + userID);
         ResultSet results = stmt.executeQuery();
 
         while (results.next()) {
